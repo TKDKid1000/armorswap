@@ -7,6 +7,6 @@
 
 
 worlds:
-- overworld
-- the_nether
-- the_end
+#- overworld
+#- the_nether
+#- the_end
