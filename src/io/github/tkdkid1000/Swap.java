@@ -25,14 +25,8 @@ public class Swap extends JavaPlugin implements Listener {
 	// onEnable method
 	@Override
 	public void onEnable() {
-		getServer().getConsoleSender().sendMessage("onEnable");
 		plugin.saveDefaultConfig();
 		getServer().getPluginManager().registerEvents(this, this);
-	}
-
-	@Override
-	public void onLoad(){
-		getServer().getConsoleSender().sendMessage("onLoad");
 		getWorlds();
 	}
 
