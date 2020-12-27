@@ -142,11 +142,6 @@ public class Swap extends JavaPlugin implements Listener {
 	}
 
 	public void playSound(Player p){
-		// get the helmet, chestplate, leggings, and boots
-		ItemStack helm = p.getInventory().getHelmet();
-		ItemStack chest = p.getInventory().getChestplate();
-		ItemStack legs = p.getInventory().getLeggings();
-		ItemStack boots = p.getInventory().getBoots();
 		// get the held item
 		ItemStack item = p.getInventory().getItemInMainHand();
 		Material type = item.getType();
