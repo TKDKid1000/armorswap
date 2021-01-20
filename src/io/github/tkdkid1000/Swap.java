@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,6 +39,10 @@ public class Swap extends JavaPlugin implements Listener {
 	public void onClick(PlayerInteractEvent e) {
 		// get the player type
 		Player p = e.getPlayer();
+		// get the hand, if it is the offhand then return
+		if (e.getHand() == EquipmentSlot.OFF_HAND) {
+			return;
+		}
 		// get the actions
 		Action a = e.getAction();
 		// detect if the action is RIGHT_CLICK_AIr
@@ -47,7 +52,9 @@ public class Swap extends JavaPlugin implements Listener {
 				worlds.add(Bukkit.getWorld(world));
 			}
 			if (worlds.contains(p.getWorld())) {
-				swapItems(p);
+				if (e.getHand() == EquipmentSlot.HAND) {
+					swapItems(p);
+				}
 			}
 		} else {
 			return;
@@ -63,7 +70,8 @@ public class Swap extends JavaPlugin implements Listener {
 		ItemStack boots = p.getInventory().getBoots();
 		// get the held item
 		ItemStack item = p.getInventory().getItemInMainHand();
-		if (item.getType() == null | item.getType() == Material.AIR) {
+		//check held item isnt air
+		if (item == null | item.getType() == Material.AIR) {
 			return;
 		}
 		Material type = item.getType();
