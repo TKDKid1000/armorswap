@@ -10,3 +10,5 @@ worlds:
 #- overworld
 #- the_nether
 #- the_end
+
+coolDown: 1

@@ -19,7 +19,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Swap extends JavaPlugin implements Listener {
 	FileConfiguration config = getConfig();
-	List<World> worlds = new ArrayList<World>();
+	List<World> worlds;
+	List<Player> playersOnCoolDown;
+	int coolDown = 1;
 	Plugin plugin = this;
 
 	// onEnable method
@@ -27,23 +29,20 @@ public class Swap extends JavaPlugin implements Listener {
 	public void onEnable() {
 		plugin.saveDefaultConfig();
 		getServer().getPluginManager().registerEvents(this, this);
-		getWorlds();
+		getConfigData();
 	}
 
-	// onDisable method
-	@Override
-	public void onDisable() {
-
-	}
-
-	public  void getWorlds(){
+	public  void getConfigData(){
 		worlds.clear();
 		for (String world : config.getStringList("worlds")) {
 			worlds.add(Bukkit.getWorld(world));
 		}
+		coolDown = config.getInt("coolDown");
+		if(coolDown<1){
+			coolDown = 1;
+		}
 	}
 
-	// event for the while thing
 	@EventHandler
 	public void onClick(PlayerInteractEvent e) {
 		// get the player type
@@ -53,15 +52,14 @@ public class Swap extends JavaPlugin implements Listener {
 		// detect if the action is RIGHT_CLICK_AIr
 		if (a.equals(Action.RIGHT_CLICK_AIR) || a.equals(Action.RIGHT_CLICK_BLOCK)) {
 			if (worlds.contains(p.getWorld()) || worlds.size()==0) {
-				swapItems(p);
+				if(swapItems(p)){
+					e.setCancelled(true);
+				}
 			}
-		} else {
-			return;
 		}
 	}
 
-	// swapping items function
-	public void swapItems(Player p) {
+	public boolean swapItems(Player p) {
 		// get the helmet, chestplate, leggings, and boots
 		ItemStack helm = p.getInventory().getHelmet();
 		ItemStack chest = p.getInventory().getChestplate();
@@ -69,9 +67,19 @@ public class Swap extends JavaPlugin implements Listener {
 		ItemStack boots = p.getInventory().getBoots();
 		// get the held item
 		ItemStack item = p.getInventory().getItemInMainHand();
-		if (item.getType() == null | item.getType() == Material.AIR) {
-			return;
+		if (item.getType() == Material.AIR || playersOnCoolDown.contains(p)) {
+			return false;
 		}
+		playersOnCoolDown.add(p);
+		new java.util.Timer().schedule(
+				new java.util.TimerTask() {
+					@Override
+					public void run() {
+						playersOnCoolDown.remove(p);
+					}
+				},
+				coolDown
+		);
 		Material type = item.getType();
 		// check if held item is a type of item
 		// helmets
@@ -81,10 +89,11 @@ public class Swap extends JavaPlugin implements Listener {
 				|| type == Material.CHAINMAIL_HELMET
 				|| type == Material.GOLDEN_HELMET
 				|| type == Material.LEATHER_HELMET
-				|| type == Material.TURTLE_HELMET) {
+				|| type == Material.TURTLE_HELMET
+				|| type == Material.PLAYER_HEAD) {
 			// swap items
-			if (helm == null || helm.getType() == Material.AIR) {
-				return;
+			if ((helm == null || helm.getType() == Material.AIR) && type != Material.PLAYER_HEAD) {
+				return false;
 			}
 			playSound(p);
 			p.getInventory().setItemInMainHand(helm);
@@ -100,7 +109,7 @@ public class Swap extends JavaPlugin implements Listener {
 				|| type == Material.ELYTRA) {
 			// swap items
 			if (chest == null || chest.getType() == Material.AIR) {
-				return;
+				return false;
 			}
 			playSound(p);
 			p.getInventory().setItemInMainHand(chest);
@@ -115,7 +124,7 @@ public class Swap extends JavaPlugin implements Listener {
 				|| type == Material.LEATHER_LEGGINGS) {
 			// swap items
 			if (legs == null || legs.getType() == Material.AIR) {
-				return;
+				return false;
 			}
 			playSound(p);
 			p.getInventory().setItemInMainHand(legs);
@@ -130,15 +139,16 @@ public class Swap extends JavaPlugin implements Listener {
 				|| type == Material.LEATHER_BOOTS) {
 			// swap items
 			if (boots == null || boots.getType() == Material.AIR) {
-				return;
+				return false;
 			}
 			playSound(p);
 			p.getInventory().setItemInMainHand(boots);
 			p.getInventory().setBoots(item);
 		}
 		else {
-			return;
+			return false;
 		}
+		return true;
 	}
 
 	public void playSound(Player p){
@@ -184,7 +194,8 @@ public class Swap extends JavaPlugin implements Listener {
 		else if(type == Material.LEATHER_HELMET
 				|| type == Material.LEATHER_CHESTPLATE
 				|| type == Material.LEATHER_LEGGINGS
-				|| type == Material.LEATHER_BOOTS){
+				|| type == Material.LEATHER_BOOTS
+				|| type == Material.PLAYER_HEAD){
 			p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
 		}
 	}
